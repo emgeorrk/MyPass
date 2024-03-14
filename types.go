@@ -1,5 +1,7 @@
 package main
 
+import "database/sql"
+
 type (
 	Element struct {
 		Title    string `json:"title"`
@@ -9,5 +11,9 @@ type (
 
 	Base struct {
 		Rows []Element
+	}
+
+	DataBase struct {
+		postgres *sql.DB
 	}
 )

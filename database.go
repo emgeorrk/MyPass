@@ -17,8 +17,8 @@ const (
 	dbname      = "postgres"
 )
 
-func getBase(db *sql.DB) (*Base, int, error) {
-	row, err := db.Query("SELECT COUNT(*) count FROM passwords")
+func (d *DataBase) getBase() (*Base, int, error) {
+	row, err := d.postgres.Query("SELECT COUNT(*) count FROM passwords")
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -35,7 +35,7 @@ func getBase(db *sql.DB) (*Base, int, error) {
 	}
 
 	elements := make([]Element, 0)
-	rows, err := db.Query("SELECT title, login, password FROM passwords")
+	rows, err := d.postgres.Query("SELECT title, login, password FROM passwords")
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -52,8 +52,8 @@ func getBase(db *sql.DB) (*Base, int, error) {
 	return &Base{elements}, http.StatusOK, nil
 }
 
-func addElem(db *sql.DB, newElem Element) (int, error) {
-	row, err := db.Query("SELECT COUNT(title) count FROM passwords WHERE title = $1", newElem.Title)
+func (d *DataBase) addElem(newElem Element) (int, error) {
+	row, err := d.postgres.Query("SELECT COUNT(title) count FROM passwords WHERE title = $1", newElem.Title)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -68,7 +68,7 @@ func addElem(db *sql.DB, newElem Element) (int, error) {
 		return http.StatusBadRequest, errors.New("element already exists")
 	}
 
-	_, err = db.Exec("INSERT INTO passwords (title, login, password) VALUES ($1, $2, $3)",
+	_, err = d.postgres.Exec("INSERT INTO passwords (title, login, password) VALUES ($1, $2, $3)",
 		newElem.Title, newElem.Login, newElem.Password)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -76,28 +76,29 @@ func addElem(db *sql.DB, newElem Element) (int, error) {
 	return http.StatusOK, nil
 }
 
-func editElem(db *sql.DB, oldElem, newElem Element) error {
-
-	return nil
+func (d *DataBase) editElem(oldElem, newElem Element) (int, error) {
+	return http.StatusOK, nil
 }
 
 func removeElem() {}
 
-func connectDB() (*sql.DB, error) {
+func (d *DataBase) connectDB() error {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, sqlPassword, dbname)
 	fmt.Println(psqlInfo)
 
-	db, err := sql.Open("postgres", psqlInfo)
+	var err error
+	d.postgres, err = sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = db.Ping()
+	err = d.postgres.Ping()
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return err
 	}
 
 	log.Println("Successfully connected to the database")
-	return db, nil
+	return nil
 }

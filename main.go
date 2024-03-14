@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
@@ -16,7 +15,7 @@ const (
 )
 
 var (
-	db *sql.DB
+	db = new(DataBase)
 )
 
 func auth(c *gin.Context) {
@@ -57,52 +56,64 @@ func actionHandler(c *gin.Context) {
 
 	switch action {
 	case "getBase":
-		base, status, err := getBase(db)
-		if err != nil {
-			log.Println(err)
-			c.String(status, err.Error())
-			c.Abort()
-			return
-		}
-
-		c.JSONP(http.StatusOK, base)
-		c.String(http.StatusOK, "\n")
+		getBasePrep(c)
 	case "addElem":
-		jsonNewElem := c.GetHeader("Element")
-		newElem := Element{}
-
-		err := json.Unmarshal([]byte(jsonNewElem), &newElem)
-		if err != nil {
-			log.Println(err)
-			c.String(http.StatusInternalServerError, err.Error())
-			c.Abort()
-			return
-		}
-
-		status, err := addElem(db, newElem)
-		if err != nil {
-			log.Println(err)
-			c.String(status, err.Error())
-			c.Abort()
-			return
-		}
-
-		c.String(http.StatusOK, "Element added successfully\n")
-
+		addElemPrep(c)
 	case "editElem":
-
+		editElemPrep(c)
 	default:
-		c.String(http.StatusBadRequest, "Action not supported\n")
+		c.String(http.StatusBadRequest, "Action not supported: %s\n", action)
 	}
+}
+
+func getBasePrep(c *gin.Context) {
+	base, status, err := db.getBase()
+	if err != nil {
+		log.Println(err)
+		c.String(status, err.Error())
+		c.Abort()
+		return
+	}
+
+	c.JSONP(http.StatusOK, base)
+	c.String(http.StatusOK, "\n")
+}
+
+func addElemPrep(c *gin.Context) {
+	jsonNewElem := c.GetHeader("Element")
+	newElem := Element{}
+
+	err := json.Unmarshal([]byte(jsonNewElem), &newElem)
+	if err != nil {
+		log.Println(err)
+		c.String(http.StatusInternalServerError, err.Error())
+		c.Abort()
+		return
+	}
+
+	status, err := db.addElem(newElem)
+	if err != nil {
+		log.Println(err)
+		c.String(status, err.Error())
+		c.Abort()
+		return
+	}
+
+	c.String(http.StatusOK, "Element added successfully\n")
+	getBasePrep(c)
+}
+
+func editElemPrep(c *gin.Context) {
+
 }
 
 func main() {
 	var err error
-	db, err = connectDB()
+	err = db.connectDB()
 	if err != nil {
 		log.Fatalln("Error connecting PostgreSQL: ", err)
 	}
-	defer db.Close()
+	defer db.postgres.Close()
 
 	r := gin.Default()
 
