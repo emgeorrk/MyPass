@@ -19,7 +19,7 @@ var (
 	db *sql.DB
 )
 
-func Auth(c *gin.Context) {
+func auth(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is missing"})
@@ -52,12 +52,7 @@ func Auth(c *gin.Context) {
 	c.Next()
 }
 
-func foo2(c *gin.Context) {
-	//c.String(http.StatusOK, "Authorization successful\n")
-	c.Next()
-}
-
-func foo3(c *gin.Context) {
+func actionHandler(c *gin.Context) {
 	action := c.GetHeader("Action")
 
 	switch action {
@@ -72,10 +67,10 @@ func foo3(c *gin.Context) {
 
 		c.JSONP(http.StatusOK, base)
 		c.String(http.StatusOK, "\n")
-
 	case "addElem":
 		jsonNewElem := c.GetHeader("Element")
 		newElem := Element{}
+
 		err := json.Unmarshal([]byte(jsonNewElem), &newElem)
 		if err != nil {
 			log.Println(err)
@@ -84,7 +79,7 @@ func foo3(c *gin.Context) {
 			return
 		}
 
-		status, err := addElem(db, newElem.Title, newElem.Login, newElem.Password)
+		status, err := addElem(db, newElem)
 		if err != nil {
 			log.Println(err)
 			c.String(status, err.Error())
@@ -93,6 +88,9 @@ func foo3(c *gin.Context) {
 		}
 
 		c.String(http.StatusOK, "Element added successfully\n")
+
+	case "editElem":
+
 	default:
 		c.String(http.StatusBadRequest, "Action not supported\n")
 	}
@@ -102,14 +100,16 @@ func main() {
 	var err error
 	db, err = connectDB()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln("Error connecting PostgreSQL: ", err)
 	}
 	defer db.Close()
 
 	r := gin.Default()
-	r.Handle("GET", "/ping", Auth, foo2, foo3)
+
+	r.Handle("GET", "/ping", auth, actionHandler)
+
 	err = r.Run()
 	if err != nil {
-		log.Fatal("Error launching server")
+		log.Fatalln("Error launching server: ", err)
 	}
 }

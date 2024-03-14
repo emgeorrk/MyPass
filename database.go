@@ -25,7 +25,7 @@ type (
 	}
 
 	Base struct {
-		Passwords []Element
+		Rows []Element
 	}
 )
 
@@ -64,8 +64,8 @@ func getBase(db *sql.DB) (*Base, int, error) {
 	return &Base{elements}, http.StatusOK, nil
 }
 
-func addElem(db *sql.DB, title, login, password string) (int, error) {
-	row, err := db.Query("SELECT COUNT(title) count FROM passwords WHERE title = $1", title)
+func addElem(db *sql.DB, newElem Element) (int, error) {
+	row, err := db.Query("SELECT COUNT(title) count FROM passwords WHERE title = $1", newElem.Title)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -81,14 +81,14 @@ func addElem(db *sql.DB, title, login, password string) (int, error) {
 	}
 
 	_, err = db.Exec("INSERT INTO passwords (title, login, password) VALUES ($1, $2, $3)",
-		string(title), string(login), string(password))
+		newElem.Title, newElem.Login, newElem.Password)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	return http.StatusOK, nil
 }
 
-func editElem(db *sql.DB, title, login, password string) error {
+func editElem(db *sql.DB, oldElem, newElem Element) error {
 
 	return nil
 }
@@ -112,24 +112,4 @@ func connectDB() (*sql.DB, error) {
 
 	log.Println("Successfully connected to the database")
 	return db, nil
-
-	//login := "EGor"
-	//rows, err := db.Query("SELECT COUNT(title) count FROM passwords WHERE title = $1", string(login))
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//defer rows.Close()
-	//
-	//// Проходимся по результатам запроса
-	//for rows.Next() {
-	//	var cnt int
-	//	if err := rows.Scan(&cnt); err != nil {
-	//		panic(err)
-	//	}
-	//	fmt.Printf("count: %d\n", cnt)
-	//}
-	//// Обработка возможной ошибки после вызова rows.Next()
-	//if err := rows.Err(); err != nil {
-	//	panic(err)
-	//}
 }
