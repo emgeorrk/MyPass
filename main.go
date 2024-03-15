@@ -104,7 +104,37 @@ func addElemPrep(c *gin.Context) {
 }
 
 func editElemPrep(c *gin.Context) {
+	jsonOldElem := c.GetHeader("oldElem")
+	jsonNewElem := c.GetHeader("newElem")
+	oldElem := Element{}
+	newElem := Element{}
 
+	err := json.Unmarshal([]byte(jsonOldElem), &oldElem)
+	if err != nil {
+		log.Println(err)
+		c.String(http.StatusInternalServerError, err.Error())
+		c.Abort()
+		return
+	}
+
+	err = json.Unmarshal([]byte(jsonNewElem), &newElem)
+	if err != nil {
+		log.Println(err)
+		c.String(http.StatusInternalServerError, err.Error())
+		c.Abort()
+		return
+	}
+
+	status, err := db.editElem(oldElem, newElem)
+	if err != nil {
+		log.Println(err)
+		c.String(status, err.Error())
+		c.Abort()
+		return
+	}
+
+	c.String(http.StatusOK, "Element edited successfully\n")
+	getBasePrep(c)
 }
 
 func main() {
