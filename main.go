@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	db = new(DataBase)
+	db = new(dataBase)
 )
 
 func auth(c *gin.Context) {
@@ -61,6 +61,8 @@ func actionHandler(c *gin.Context) {
 		addElemPrep(c)
 	case "editElem":
 		editElemPrep(c)
+	case "removeElem":
+		removeElemPrep(c)
 	default:
 		c.String(http.StatusBadRequest, "Action not supported: %s\n", action)
 	}
@@ -136,6 +138,8 @@ func editElemPrep(c *gin.Context) {
 	c.String(http.StatusOK, "Element edited successfully\n")
 	getBasePrep(c)
 }
+
+func removeElemPrep(c *gin.Context) {}
 
 func main() {
 	var err error

@@ -9,11 +9,11 @@ type (
 		Password string `json:"password"`
 	}
 
-	Base struct {
+	base struct {
 		Rows []Element
 	}
 
-	DataBase struct {
+	dataBase struct {
 		postgres *sql.DB
 	}
 )

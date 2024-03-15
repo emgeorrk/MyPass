@@ -17,7 +17,7 @@ const (
 	dbname      = "postgres"
 )
 
-func (d *DataBase) getBase() (*Base, int, error) {
+func (d *dataBase) getBase() (*base, int, error) {
 	row, err := d.postgres.Query("SELECT COUNT(*) count FROM passwords")
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
@@ -49,10 +49,10 @@ func (d *DataBase) getBase() (*Base, int, error) {
 		elements = append(elements, Element{title, login, pass})
 	}
 
-	return &Base{elements}, http.StatusOK, nil
+	return &base{elements}, http.StatusOK, nil
 }
 
-func (d *DataBase) addElem(newElem Element) (int, error) {
+func (d *dataBase) addElem(newElem Element) (int, error) {
 	row, err := d.postgres.Query("SELECT COUNT(title) count FROM passwords WHERE title = $1", newElem.Title)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -76,7 +76,7 @@ func (d *DataBase) addElem(newElem Element) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (d *DataBase) editElem(oldElem, newElem Element) (int, error) {
+func (d *dataBase) editElem(oldElem, newElem Element) (int, error) {
 	row, err := d.postgres.Query(
 		"SELECT COUNT(title) count FROM passwords WHERE title = $1 AND login = $2 AND password = $3",
 		oldElem.Title, oldElem.Login, oldElem.Password)
@@ -108,11 +108,11 @@ func (d *DataBase) editElem(oldElem, newElem Element) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (d *DataBase) removeElem(elem Element) (int, error) {
+func (d *dataBase) removeElem(elem Element) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (d *DataBase) connectDB() error {
+func (d *dataBase) connectDB() error {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, sqlPassword, dbname)
 	fmt.Println(psqlInfo)
