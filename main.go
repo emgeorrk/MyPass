@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -51,6 +50,12 @@ func auth(c *gin.Context) {
 	c.Next()
 }
 
+func abortWithStatusAndError(status int, err error, c *gin.Context) {
+	log.Println(err)
+	c.String(status, err.Error())
+	c.Abort()
+}
+
 func actionHandler(c *gin.Context) {
 	action := c.GetHeader("Action")
 
@@ -71,9 +76,7 @@ func actionHandler(c *gin.Context) {
 func getBasePrep(c *gin.Context) {
 	base, status, err := db.getBase()
 	if err != nil {
-		log.Println(err)
-		c.String(status, err.Error())
-		c.Abort()
+		abortWithStatusAndError(status, err, c)
 		return
 	}
 
@@ -82,22 +85,14 @@ func getBasePrep(c *gin.Context) {
 }
 
 func addElemPrep(c *gin.Context) {
-	jsonNewElem := c.GetHeader("Element")
 	newElem := Element{}
-
-	err := json.Unmarshal([]byte(jsonNewElem), &newElem)
-	if err != nil {
-		log.Println(err)
-		c.String(http.StatusInternalServerError, err.Error())
-		c.Abort()
+	if status, err := newElem.getElem("Element", c); err != nil {
+		abortWithStatusAndError(status, err, c)
 		return
 	}
 
-	status, err := db.addElem(newElem)
-	if err != nil {
-		log.Println(err)
-		c.String(status, err.Error())
-		c.Abort()
+	if status, err := db.addElem(newElem); err != nil {
+		abortWithStatusAndError(status, err, c)
 		return
 	}
 
@@ -106,32 +101,21 @@ func addElemPrep(c *gin.Context) {
 }
 
 func editElemPrep(c *gin.Context) {
-	jsonOldElem := c.GetHeader("oldElement")
-	jsonNewElem := c.GetHeader("newElement")
 	oldElem := Element{}
-	newElem := Element{}
-
-	err := json.Unmarshal([]byte(jsonOldElem), &oldElem)
-	if err != nil {
-		log.Println(err)
-		c.String(http.StatusInternalServerError, err.Error())
-		c.Abort()
+	if status, err := oldElem.getElem("oldElement", c); err != nil {
+		abortWithStatusAndError(status, err, c)
 		return
 	}
 
-	err = json.Unmarshal([]byte(jsonNewElem), &newElem)
-	if err != nil {
-		log.Println(err)
-		c.String(http.StatusInternalServerError, err.Error())
-		c.Abort()
+	newElem := Element{}
+	if status, err := newElem.getElem("newElement", c); err != nil {
+		abortWithStatusAndError(status, err, c)
 		return
 	}
 
 	status, err := db.editElem(oldElem, newElem)
 	if err != nil {
-		log.Println(err)
-		c.String(status, err.Error())
-		c.Abort()
+		abortWithStatusAndError(status, err, c)
 		return
 	}
 
@@ -140,8 +124,19 @@ func editElemPrep(c *gin.Context) {
 }
 
 func removeElemPrep(c *gin.Context) {
-	elem := c.GetHeader("Element")
+	elem := Element{}
+	if status, err := elem.getElem("Element", c); err != nil {
+		abortWithStatusAndError(status, err, c)
+		return
+	}
 
+	if status, err := db.removeElem(elem); err != nil {
+		abortWithStatusAndError(status, err, c)
+		return
+	}
+
+	c.String(http.StatusOK, "Element removed successfully\n")
+	getBasePrep(c)
 }
 
 func main() {

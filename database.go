@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
@@ -16,6 +18,21 @@ const (
 	sqlPassword = "admin"
 	dbname      = "postgres"
 )
+
+func (e *Element) getElem(key string, from *gin.Context) (int, error) {
+	jsonElem := from.GetHeader(key)
+	if jsonElem == "" {
+		errorString := fmt.Sprintf("Error: header \"%s\" is empty", key)
+		return http.StatusBadRequest, errors.New(errorString)
+	}
+
+	err := json.Unmarshal([]byte(jsonElem), &e)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	return 0, nil
+}
 
 func (d *dataBase) getBase() (*base, int, error) {
 	row, err := d.postgres.Query("SELECT COUNT(*) count FROM passwords")
@@ -49,7 +66,7 @@ func (d *dataBase) getBase() (*base, int, error) {
 		elements = append(elements, Element{title, login, pass})
 	}
 
-	return &base{elements}, http.StatusOK, nil
+	return &base{elements}, 0, nil
 }
 
 func (d *dataBase) addElem(newElem Element) (int, error) {
@@ -73,7 +90,7 @@ func (d *dataBase) addElem(newElem Element) (int, error) {
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return http.StatusOK, nil
+	return 0, nil
 }
 
 func (d *dataBase) editElem(oldElem, newElem Element) (int, error) {
@@ -105,11 +122,38 @@ func (d *dataBase) editElem(oldElem, newElem Element) (int, error) {
 		return http.StatusInternalServerError, err
 	}
 
-	return http.StatusOK, nil
+	return 0, nil
 }
 
 func (d *dataBase) removeElem(elem Element) (int, error) {
-	return http.StatusOK, nil
+	row, err := d.postgres.Query(
+		"SELECT COUNT(title) count FROM passwords WHERE title = $1 AND login = $2 AND password = $3",
+		elem.Title, elem.Login, elem.Password)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer row.Close()
+
+	var count int
+	row.Next()
+	if err := row.Scan(&count); err != nil {
+		return http.StatusInternalServerError, err
+	}
+	switch {
+	case count < 1:
+		return http.StatusBadRequest, errors.New("element doesn't exists")
+	case count > 1:
+		return http.StatusInternalServerError, errors.New("element present more than once")
+	}
+
+	_, err = d.postgres.Exec(
+		"DELETE FROM passwords WHERE title=$1 AND login=$2 AND password=$3",
+		elem.Title, elem.Login, elem.Password)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return 0, nil
 }
 
 func (d *dataBase) connectDB() error {
