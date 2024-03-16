@@ -16,4 +16,9 @@ type (
 	dataBase struct {
 		postgres *sql.DB
 	}
+
+	response struct {
+		Error     string    `json:"error"`
+		Passwords []Element `json:"passwords"`
+	}
 )

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -52,7 +53,7 @@ func auth(c *gin.Context) {
 
 func abortWithStatusAndError(status int, err error, c *gin.Context) {
 	log.Println(err)
-	c.String(status, err.Error())
+	c.JSON(status, response{err.Error(), nil})
 	c.Abort()
 }
 
@@ -69,7 +70,7 @@ func actionHandler(c *gin.Context) {
 	case "removeElem":
 		removeElemPrep(c)
 	default:
-		c.String(http.StatusBadRequest, "Action not supported: %s\n", action)
+		c.JSON(http.StatusBadRequest, response{fmt.Sprintf("Action not supported: %s\n", action), nil})
 	}
 }
 
@@ -80,8 +81,7 @@ func getBasePrep(c *gin.Context) {
 		return
 	}
 
-	c.JSONP(http.StatusOK, base)
-	c.String(http.StatusOK, "\n")
+	c.JSON(http.StatusOK, response{"", base.Rows})
 }
 
 func addElemPrep(c *gin.Context) {
@@ -96,7 +96,6 @@ func addElemPrep(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusOK, "Element added successfully\n")
 	getBasePrep(c)
 }
 
@@ -119,7 +118,6 @@ func editElemPrep(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusOK, "Element edited successfully\n")
 	getBasePrep(c)
 }
 
@@ -135,7 +133,6 @@ func removeElemPrep(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusOK, "Element removed successfully\n")
 	getBasePrep(c)
 }
 

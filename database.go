@@ -22,7 +22,7 @@ const (
 func (e *Element) getElem(key string, from *gin.Context) (int, error) {
 	jsonElem := from.GetHeader(key)
 	if jsonElem == "" {
-		errorString := fmt.Sprintf("Error: header \"%s\" is empty", key)
+		errorString := fmt.Sprintf("Error: header '%s' is empty", key)
 		return http.StatusBadRequest, errors.New(errorString)
 	}
 
