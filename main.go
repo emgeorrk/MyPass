@@ -106,8 +106,8 @@ func addElemPrep(c *gin.Context) {
 }
 
 func editElemPrep(c *gin.Context) {
-	jsonOldElem := c.GetHeader("oldElem")
-	jsonNewElem := c.GetHeader("newElem")
+	jsonOldElem := c.GetHeader("oldElement")
+	jsonNewElem := c.GetHeader("newElement")
 	oldElem := Element{}
 	newElem := Element{}
 
@@ -139,7 +139,10 @@ func editElemPrep(c *gin.Context) {
 	getBasePrep(c)
 }
 
-func removeElemPrep(c *gin.Context) {}
+func removeElemPrep(c *gin.Context) {
+	elem := c.GetHeader("Element")
+
+}
 
 func main() {
 	var err error
