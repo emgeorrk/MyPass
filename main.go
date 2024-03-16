@@ -85,7 +85,7 @@ func getBasePrep(c *gin.Context) {
 }
 
 func addElemPrep(c *gin.Context) {
-	newElem := Element{}
+	newElem := element{}
 	if status, err := newElem.getElem("Element", c); err != nil {
 		abortWithStatusAndError(status, err, c)
 		return
@@ -100,13 +100,13 @@ func addElemPrep(c *gin.Context) {
 }
 
 func editElemPrep(c *gin.Context) {
-	oldElem := Element{}
+	oldElem := element{}
 	if status, err := oldElem.getElem("oldElement", c); err != nil {
 		abortWithStatusAndError(status, err, c)
 		return
 	}
 
-	newElem := Element{}
+	newElem := element{}
 	if status, err := newElem.getElem("newElement", c); err != nil {
 		abortWithStatusAndError(status, err, c)
 		return
@@ -122,7 +122,7 @@ func editElemPrep(c *gin.Context) {
 }
 
 func removeElemPrep(c *gin.Context) {
-	elem := Element{}
+	elem := element{}
 	if status, err := elem.getElem("Element", c); err != nil {
 		abortWithStatusAndError(status, err, c)
 		return

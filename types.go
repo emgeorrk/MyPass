@@ -3,14 +3,14 @@ package main
 import "database/sql"
 
 type (
-	Element struct {
+	element struct {
 		Title    string `json:"title"`
 		Login    string `json:"login"`
 		Password string `json:"password"`
 	}
 
 	base struct {
-		Rows []Element
+		Rows []element
 	}
 
 	dataBase struct {
@@ -19,6 +19,6 @@ type (
 
 	response struct {
 		Error     string    `json:"error"`
-		Passwords []Element `json:"passwords"`
+		Passwords []element `json:"passwords"`
 	}
 )

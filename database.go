@@ -19,7 +19,7 @@ const (
 	dbname      = "postgres"
 )
 
-func (e *Element) getElem(key string, from *gin.Context) (int, error) {
+func (e *element) getElem(key string, from *gin.Context) (int, error) {
 	jsonElem := from.GetHeader(key)
 	if jsonElem == "" {
 		errorString := fmt.Sprintf("Error: header '%s' is empty", key)
@@ -51,7 +51,7 @@ func (d *dataBase) getBase() (*base, int, error) {
 		return nil, http.StatusBadRequest, errors.New("table is empty")
 	}
 
-	elements := make([]Element, 0)
+	elements := make([]element, 0)
 	rows, err := d.postgres.Query("SELECT title, login, password FROM passwords")
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
@@ -63,13 +63,13 @@ func (d *dataBase) getBase() (*base, int, error) {
 		if err := rows.Scan(&title, &login, &pass); err != nil {
 			return nil, http.StatusInternalServerError, err
 		}
-		elements = append(elements, Element{title, login, pass})
+		elements = append(elements, element{title, login, pass})
 	}
 
 	return &base{elements}, 0, nil
 }
 
-func (d *dataBase) addElem(newElem Element) (int, error) {
+func (d *dataBase) addElem(newElem element) (int, error) {
 	row, err := d.postgres.Query("SELECT COUNT(title) count FROM passwords WHERE title = $1", newElem.Title)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -93,7 +93,7 @@ func (d *dataBase) addElem(newElem Element) (int, error) {
 	return 0, nil
 }
 
-func (d *dataBase) editElem(oldElem, newElem Element) (int, error) {
+func (d *dataBase) editElem(oldElem, newElem element) (int, error) {
 	row, err := d.postgres.Query(
 		"SELECT COUNT(title) count FROM passwords WHERE title = $1 AND login = $2 AND password = $3",
 		oldElem.Title, oldElem.Login, oldElem.Password)
@@ -125,7 +125,7 @@ func (d *dataBase) editElem(oldElem, newElem Element) (int, error) {
 	return 0, nil
 }
 
-func (d *dataBase) removeElem(elem Element) (int, error) {
+func (d *dataBase) removeElem(elem element) (int, error) {
 	row, err := d.postgres.Query(
 		"SELECT COUNT(title) count FROM passwords WHERE title = $1 AND login = $2 AND password = $3",
 		elem.Title, elem.Login, elem.Password)
