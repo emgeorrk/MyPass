@@ -65,6 +65,8 @@ func actionHandler(c *gin.Context) {
 		editElemPrep(c)
 	case "removeElem":
 		removeElemPrep(c)
+	case "auth":
+		c.AbortWithStatus(http.StatusOK)
 	default:
 		c.JSON(http.StatusBadRequest, response{fmt.Sprintf("Action not supported: %s\n", action), nil})
 	}
