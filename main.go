@@ -14,10 +14,6 @@ const (
 	password = "admin"
 )
 
-var (
-	db = new(dataBase)
-)
-
 func auth(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
@@ -146,7 +142,7 @@ func main() {
 
 	r := gin.Default()
 
-	r.Handle("GET", "/ping", auth, actionHandler)
+	r.Handle("GET", "/", auth, actionHandler)
 
 	err = r.Run()
 	if err != nil {

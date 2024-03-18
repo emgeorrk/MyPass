@@ -19,6 +19,8 @@ const (
 	dbname      = "postgres"
 )
 
+var db = new(dataBase)
+
 func (e *element) getElem(key string, from *gin.Context) (int, error) {
 	jsonElem := from.GetHeader(key)
 	if jsonElem == "" {
