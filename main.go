@@ -146,7 +146,7 @@ func main() {
 
 	r.Handle("GET", "/", auth, actionHandler)
 
-	err = r.Run()
+	err = r.Run(":8080")
 	if err != nil {
 		log.Fatalln("Error launching server: ", err)
 	}
