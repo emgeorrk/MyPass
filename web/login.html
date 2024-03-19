@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            width: 300px;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .login-form input[type="text"],
+        .login-form input[type="password"],
+        .login-form input[type="button"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #444;
+            border-radius: 3px;
+            box-sizing: border-box;
+            background-color: #555;
+            color: #fff;
+        }
+
+        .login-form input[type="button"] {
+            background-color: #007bff;
+            cursor: pointer;
+        }
+
+        .login-form input[type="button"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h2>MyPass</h2>
+    <form class="login-form" action="#" method="post">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="button" value="Login" onclick="login()">
+    </form>
+</div>
+
+<script>
+    function login() {
+
+        var username = document.querySelector('input[name="username"]').value;
+        var password = document.querySelector('input[name="password"]').value;
+
+        // Создаем строку с логином и паролем в формате "логин:пароль"
+        var credentials = username + ':' + password;
+
+        // Кодируем строку в base64
+        var encodedCredentials = btoa(credentials);
+
+        // Создаем новый объект XMLHttpRequest
+        var xhr = new XMLHttpRequest();
+
+        // Настраиваем запрос
+        xhr.open('GET', 'http://:56821/', true);
+
+        // Добавляем заголовок с авторизацией HTTP Basic
+        xhr.setRequestHeader('Authorization', 'Basic ' + encodedCredentials);
+
+        xhr.setRequestHeader('Action', 'getBase')
+
+        // Создаем промис
+        var promise = new Promise(function(resolve, reject) {
+            // Устанавливаем обработчик события "load"
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    // Если запрос успешен, вызываем resolve с ответом от сервера
+                    resolve(xhr.responseText);
+                } else {
+                    // Если запрос неудачен, вызываем reject с ошибкой
+                    reject(xhr.status);
+                }
+            };
+
+            // Устанавливаем обработчик события "error"
+            xhr.onerror = function () {
+                // Если произошла ошибка при выполнении запроса
+                reject(xhr.status);
+            };
+        });
+
+        // Отправляем запрос
+        xhr.send();
+
+        // Обрабатываем результат промиса
+        promise.then(function(response) {
+            // В случае успешного ответа от сервера
+            console.log('Response:', response);
+            // Здесь можно обрабатывать ответ от сервера
+        }).catch(function(error) {
+            // В случае ошибки
+            console.error('Request failed with status:', error);
+            // Здесь можно обрабатывать ошибку
+        });
+    }
+</script>
+
+</body>
+</html>
