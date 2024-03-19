@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -143,6 +144,14 @@ func main() {
 	defer db.postgres.Close()
 
 	r := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	r.Use(cors.New(config))
+
+	r.Handle("OPTIONS", "/", func(c *gin.Context) {
+		c.AbortWithStatus(http.StatusOK)
+	})
 
 	r.Handle("GET", "/", auth, actionHandler)
 
