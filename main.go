@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -144,9 +145,18 @@ func main() {
 
 	r := gin.Default()
 
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowHeaders = []string{"*"}
+	r.Use(cors.New(config))
+
+	r.Handle("OPTIONS", "/", func(c *gin.Context) {
+		c.AbortWithStatus(http.StatusOK)
+	})
+
 	r.Handle("GET", "/", auth, actionHandler)
 
-	err = r.Run(":8080")
+	err = r.Run(":56821")
 	if err != nil {
 		log.Fatalln("Error launching server: ", err)
 	}
