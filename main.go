@@ -147,6 +147,7 @@ func main() {
 
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
+	config.AllowHeaders = []string{"*"}
 	r.Use(cors.New(config))
 
 	r.Handle("OPTIONS", "/", func(c *gin.Context) {
@@ -155,7 +156,7 @@ func main() {
 
 	r.Handle("GET", "/", auth, actionHandler)
 
-	err = r.Run(":8080")
+	err = r.Run(":56821")
 	if err != nil {
 		log.Fatalln("Error launching server: ", err)
 	}
