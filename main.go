@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/base64"
-	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -48,91 +47,72 @@ func auth(c *gin.Context) {
 	c.Next()
 }
 
-func abortWithStatusAndError(status int, err error, c *gin.Context) {
+func abortWithStatus(statusCode int, err error, c *gin.Context) {
 	log.Println(err)
-	c.JSON(status, response{err.Error(), nil})
+	c.JSON(statusCode, gin.H{"error": err.Error()})
 	c.Abort()
 }
 
-func actionHandler(c *gin.Context) {
-	action := c.GetHeader("Action")
-
-	switch action {
-	case "getBase":
-		getBasePrep(c)
-	case "addElem":
-		addElemPrep(c)
-	case "editElem":
-		editElemPrep(c)
-	case "removeElem":
-		removeElemPrep(c)
-	case "auth":
-		c.AbortWithStatus(http.StatusOK)
-	default:
-		c.JSON(http.StatusBadRequest, response{fmt.Sprintf("Action not supported: %s\n", action), nil})
-	}
-}
-
 func getBasePrep(c *gin.Context) {
-	base, status, err := db.getBase()
+	base, statusCode, err := db.getBase()
 	if err != nil {
-		abortWithStatusAndError(status, err, c)
+		abortWithStatus(statusCode, err, c)
 		return
 	}
 
-	c.JSON(http.StatusOK, response{"", base.Rows})
+	c.JSON(http.StatusOK, gin.H{"passwords": base.Rows})
 }
 
 func addElemPrep(c *gin.Context) {
 	newElem := element{}
-	if status, err := newElem.getElem("Element", c); err != nil {
-		abortWithStatusAndError(status, err, c)
+	if statusCode, err := newElem.getElem("Element", c); err != nil {
+		abortWithStatus(statusCode, err, c)
 		return
 	}
 
-	if status, err := db.addElem(newElem); err != nil {
-		abortWithStatusAndError(status, err, c)
+	if statusCode, err := db.addElem(newElem); err != nil {
+		abortWithStatus(statusCode, err, c)
 		return
 	}
 
-	getBasePrep(c)
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func editElemPrep(c *gin.Context) {
 	oldElem := element{}
-	if status, err := oldElem.getElem("oldElement", c); err != nil {
-		abortWithStatusAndError(status, err, c)
+	if statusCode, err := oldElem.getElem("oldElement", c); err != nil {
+		abortWithStatus(statusCode, err, c)
 		return
 	}
 
 	newElem := element{}
-	if status, err := newElem.getElem("newElement", c); err != nil {
-		abortWithStatusAndError(status, err, c)
+	if statusCode, err := newElem.getElem("newElement", c); err != nil {
+		abortWithStatus(statusCode, err, c)
 		return
 	}
 
-	status, err := db.editElem(oldElem, newElem)
+	statusCode, err := db.editElem(oldElem, newElem)
 	if err != nil {
-		abortWithStatusAndError(status, err, c)
+		abortWithStatus(statusCode, err, c)
 		return
 	}
 
-	getBasePrep(c)
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func removeElemPrep(c *gin.Context) {
 	elem := element{}
-	if status, err := elem.getElem("Element", c); err != nil {
-		abortWithStatusAndError(status, err, c)
+	if statusCode, err := elem.getElem("Element", c); err != nil {
+		abortWithStatus(statusCode, err, c)
 		return
 	}
 
-	if status, err := db.removeElem(elem); err != nil {
-		abortWithStatusAndError(status, err, c)
+	if statusCode, err := db.removeElem(elem); err != nil {
+		abortWithStatus(statusCode, err, c)
 		return
 	}
 
-	getBasePrep(c)
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func main() {
@@ -145,19 +125,24 @@ func main() {
 
 	r := gin.Default()
 
+	//r.ForwardedByClientIP = true
+	//r.SetTrustedProxies([]string{"1.1.1.1"})
+
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
 	config.AllowHeaders = []string{"*"}
+
 	r.Use(cors.New(config))
 
-	r.Handle("OPTIONS", "/", func(c *gin.Context) {
+	r.OPTIONS("/", func(c *gin.Context) {
 		c.AbortWithStatus(http.StatusOK)
 	})
+	r.GET("/", auth, getBasePrep)
+	r.PUT("/", auth, editElemPrep)
+	r.POST("/", auth, addElemPrep)
+	r.DELETE("/", auth, removeElemPrep)
 
-	r.Handle("GET", "/", auth, actionHandler)
-
-	err = r.Run(":56821")
-	if err != nil {
-		log.Fatalln("Error launching server: ", err)
+	if err := r.Run(":56821"); err != nil {
+		log.Fatalln("Error launching server:", err)
 	}
 }
