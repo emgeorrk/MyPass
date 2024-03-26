@@ -63,64 +63,7 @@
     </form>
 </div>
 
-<script>
-    function login() {
-
-        var username = document.querySelector('input[name="username"]').value;
-        var password = document.querySelector('input[name="password"]').value;
-
-        // Создаем строку с логином и паролем в формате "логин:пароль"
-        var credentials = username + ':' + password;
-
-        // Кодируем строку в base64
-        var encodedCredentials = btoa(credentials);
-
-        // Создаем новый объект XMLHttpRequest
-        var xhr = new XMLHttpRequest();
-
-        // Настраиваем запрос
-        xhr.open('GET', 'http://:56821/', true);
-
-        // Добавляем заголовок с авторизацией HTTP Basic
-        xhr.setRequestHeader('Authorization', 'Basic ' + encodedCredentials);
-
-        xhr.setRequestHeader('Action', 'getBase')
-
-        // Создаем промис
-        var promise = new Promise(function(resolve, reject) {
-            // Устанавливаем обработчик события "load"
-            xhr.onload = function () {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    // Если запрос успешен, вызываем resolve с ответом от сервера
-                    resolve(xhr.responseText);
-                } else {
-                    // Если запрос неудачен, вызываем reject с ошибкой
-                    reject(xhr.status);
-                }
-            };
-
-            // Устанавливаем обработчик события "error"
-            xhr.onerror = function () {
-                // Если произошла ошибка при выполнении запроса
-                reject(xhr.status);
-            };
-        });
-
-        // Отправляем запрос
-        xhr.send();
-
-        // Обрабатываем результат промиса
-        promise.then(function(response) {
-            // В случае успешного ответа от сервера
-            console.log('Response:', response);
-            // Здесь можно обрабатывать ответ от сервера
-        }).catch(function(error) {
-            // В случае ошибки
-            console.error('Request failed with status:', error);
-            // Здесь можно обрабатывать ошибку
-        });
-    }
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>
