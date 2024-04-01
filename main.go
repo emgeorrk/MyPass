@@ -9,10 +9,10 @@ import (
 	"strings"
 )
 
-const (
-	username = "egormerk"
+var (
+	username = "admin"
 	password = "admin"
-)
+) // admin:admin YWRtaW46YWRtaW4=
 
 func auth(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
@@ -115,6 +115,10 @@ func removeElemPrep(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
+func editAuth(c *gin.Context) {
+	// TO BE CONTINUED
+}
+
 func main() {
 	var err error
 	err = db.connectDB()
@@ -141,6 +145,7 @@ func main() {
 	r.PUT("/", auth, editElemPrep)
 	r.POST("/", auth, addElemPrep)
 	r.DELETE("/", auth, removeElemPrep)
+	r.PATCH("/", auth, editAuth)
 
 	if err := r.Run(":56821"); err != nil {
 		log.Fatalln("Error launching server:", err)

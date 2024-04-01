@@ -166,12 +166,16 @@ func (d *dataBase) connectDB() error {
 	var err error
 	d.postgres, err = sql.Open("postgres", psqlInfo)
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
 
 	err = d.postgres.Ping()
 	if err != nil {
-		log.Println(err)
+		return err
+	}
+
+	_, err = d.postgres.Exec("CREATE TABLE IF NOT EXISTS passwords (id SERIAL PRIMARY KEY, title VARCHAR, login VARCHAR, password VARCHAR);")
+	if err != nil {
 		return err
 	}
 
